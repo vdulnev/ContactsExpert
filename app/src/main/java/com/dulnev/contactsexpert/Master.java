@@ -7,16 +7,19 @@ import android.view.MenuItem;
 
 
 
-public class Master extends Activity implements ContactsListFragment.OnFragmentInteractionListener{
+public class Master extends Activity implements ContactsListFragment.OnInteractionListener {
+
+    RawContactsListFragment rawContactsFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_detail);
+        rawContactsFragment = new RawContactsListFragment();
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.master_container, new ContactsListFragment())
-                    .add(R.id.detail_container, new RawContactsListFragment())
+                    .add(R.id.detail_container, rawContactsFragment)
                     .commit();
         }
     }
@@ -42,7 +45,7 @@ public class Master extends Activity implements ContactsListFragment.OnFragmentI
     }
 
     @Override
-    public void onFragmentInteraction(String id) {
-
+    public void onContactClick() {
+        rawContactsFragment.update();
     }
 }

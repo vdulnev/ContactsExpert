@@ -1,5 +1,6 @@
 package com.dulnev.contactsexpert;
 
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
@@ -9,6 +10,7 @@ import android.provider.ContactsContract;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.RawContacts.Entity;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -117,31 +119,54 @@ public class Utils {
 		}
 	}
 
-	public static List<RawContact> getRawContacts(Context context,
+	public static List<RawContact> getRawContacts(Activity activity, final ProgressBar progressBar,
 			Integer contactID) {
 		ArrayList<RawContact> rawContacts = new ArrayList<RawContact>();
-		Cursor lRawContactsCursor = context.getContentResolver().query(
+		Cursor lCursor = activity.getContentResolver().query(
 				RawContacts.CONTENT_URI,
 				new String[] { RawContacts._ID,
 						RawContacts.DISPLAY_NAME_PRIMARY,
 						RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE },
 				RawContacts.CONTACT_ID + "=?",
 				new String[] { String.valueOf(contactID) }, null);
-		if (lRawContactsCursor.getCount() > 0) {
-			lRawContactsCursor.moveToPosition(-1);
-			while (lRawContactsCursor.moveToNext()) {
+		if (lCursor.getCount() > 0) {
+            lCursor.moveToPosition(-1);
+            float lStep = 0;
+            float lProgress = 0;
+            if (progressBar != null) {
+                lStep = (float) (100.0/lCursor.getCount());
+                lProgress = (float) 0.0;
+                activity.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+            while (lCursor.moveToNext()) {
 				RawContact lRawContact = new RawContact();
-				lRawContact.setId(lRawContactsCursor.getInt(lRawContactsCursor
+				lRawContact.setId(lCursor.getInt(lCursor
 						.getColumnIndex(RawContacts._ID)));
-				lRawContact.accountName = lRawContactsCursor
-						.getString(lRawContactsCursor
+				lRawContact.accountName = lCursor
+						.getString(lCursor
 								.getColumnIndex(RawContacts.ACCOUNT_NAME));
-				lRawContact.accountType = lRawContactsCursor
-						.getString(lRawContactsCursor
+				lRawContact.accountType = lCursor
+						.getString(lCursor
 								.getColumnIndex(RawContacts.ACCOUNT_TYPE));
 
 				rawContacts.add(lRawContact);
-			}
+                if (progressBar != null) {
+                    lProgress = lProgress + lStep;
+                    final float finalLProgress = lProgress;
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setProgress(Math.round(finalLProgress));
+                        }
+                    });
+                }
+            }
 		}
 		return rawContacts;
 	}
@@ -156,10 +181,10 @@ public class Utils {
 		return lRawContactsCursor.getCount();
 	}
 
-	public static List<RawContactData> setupRawContacts(Context context,
+	public static List<RawContactData> setupRawContacts(Activity activity,
 			Contact contact) {
 		ArrayList<RawContactData> rawContacts = new ArrayList<RawContactData>();
-		for (RawContact rawContact : Utils.getRawContacts(context,
+		for (RawContact rawContact : Utils.getRawContacts(activity, null,
 				contact.getId())) {
 			RawContactData c = new RawContactData();
 			c.id = rawContact.getId();

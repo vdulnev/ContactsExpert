@@ -12,36 +12,20 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.List;
 
-/**
- * A fragment representing a list of Items.
- * <p />
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p />
- * Activities containing this fragment MUST implement the {@link Callbacks}
- * interface.
- */
 public class ContactsListFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     float mProgress = 0;
     ProgressBar mProgressBar;
 
-    private OnFragmentInteractionListener mListener;
+    private OnInteractionListener mListener;
 
-    /**
-     * The fragment's ListView/GridView.
-     */
-    private AbsListView mListView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
+    private ListView mListView;
     private ListAdapter mAdapter;
 
     @Override
@@ -56,9 +40,8 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
 
         mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
 
-        // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        mListView = (ListView) view.findViewById(android.R.id.list);
+        mListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
@@ -85,7 +68,7 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                 + " must implement OnFragmentInteractionListener");
@@ -102,9 +85,9 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            //mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+            Data.selectedContact = Data.Contacts.get(position);
+            mListener.onContactClick();
+            mListView.setItemChecked(position, true);
         }
     }
 
@@ -131,9 +114,8 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
     * "http://developer.android.com/training/basics/fragments/communicating.html"
     * >Communicating with Other Fragments</a> for more information.
     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+    public interface OnInteractionListener {
+        public void onContactClick();
     }
 
     private List<Contact> getContacts() {
