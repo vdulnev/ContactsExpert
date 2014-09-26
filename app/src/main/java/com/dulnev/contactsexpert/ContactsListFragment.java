@@ -2,9 +2,7 @@ package com.dulnev.contactsexpert;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +13,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import java.util.List;
 
 public class ContactsListFragment extends Fragment implements AbsListView.OnItemClickListener {
 
@@ -51,7 +47,7 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
             @Override
             public void run() {
                 mAdapter = new ArrayAdapter<Contact>(getActivity(),
-                        android.R.layout.simple_list_item_1, android.R.id.text1, getContacts());
+                        android.R.layout.simple_list_item_1, android.R.id.text1, Utils.getContacts(getActivity(), mProgressBar));
                 getActivity().runOnUiThread(new Runnable() {
                     public void run() {
                         mListView.setAdapter(mAdapter);
@@ -104,58 +100,7 @@ public class ContactsListFragment extends Fragment implements AbsListView.OnItem
         }
     }
 
-    /**
-    * This interface must be implemented by activities that contain this
-    * fragment to allow an interaction in this fragment to be communicated
-    * to the activity and potentially other fragments contained in that
-    * activity.
-    * <p>
-    * See the Android Training lesson <a href=
-    * "http://developer.android.com/training/basics/fragments/communicating.html"
-    * >Communicating with Other Fragments</a> for more information.
-    */
     public interface OnInteractionListener {
         public void onContactClick();
     }
-
-    private List<Contact> getContacts() {
-        Cursor lCursor = Utils.getContactsCursor(getActivity());
-        if (lCursor.getCount() > 0) {
-            //Handler lHandler = new Handler();
-            float lStep = (float) (100.0/lCursor.getCount());
-            lCursor.moveToPosition(-1);
-            getActivity().runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    mProgressBar.setVisibility(View.VISIBLE);
-                }
-            });
-
-            while (lCursor.moveToNext()) {
-                Integer lID = lCursor.getInt(lCursor
-                        .getColumnIndex(ContactsContract.Contacts._ID));
-                String lLookupKey = lCursor.getString(lCursor
-                        .getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
-                String lDisplayName = lCursor.getString(lCursor
-                        .getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                Data.Contacts.add(Utils.getContact(getActivity(), lID, lLookupKey, lDisplayName));
-                mProgress = mProgress + lStep;
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mProgressBar.setProgress(Math.round(mProgress));
-                    }
-                });
-            }
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mProgressBar.setVisibility(View.GONE);
-                }
-            });
-        }
-        return Data.Contacts;
-    }
-
 }

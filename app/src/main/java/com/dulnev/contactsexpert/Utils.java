@@ -167,6 +167,14 @@ public class Utils {
                     });
                 }
             }
+            if (progressBar != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }
 		}
 		return rawContacts;
 	}
@@ -229,4 +237,52 @@ public class Utils {
 		}
 		return rawContacts;
 	}
+
+    public static List<Contact> getContacts(Activity activity, final ProgressBar progressBar) {
+        Cursor lCursor = Utils.getContactsCursor(activity);
+        if (lCursor.getCount() > 0) {
+            lCursor.moveToPosition(-1);
+            float lStep = (float) (100.0/lCursor.getCount());
+            float progress = (float) 0.0;
+            if (progressBar != null) {
+                activity.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+
+            while (lCursor.moveToNext()) {
+                Integer lID = lCursor.getInt(lCursor
+                        .getColumnIndex(ContactsContract.Contacts._ID));
+                String lLookupKey = lCursor.getString(lCursor
+                        .getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                String lDisplayName = lCursor.getString(lCursor
+                        .getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                Data.Contacts.add(Utils.getContact(activity, lID, lLookupKey, lDisplayName));
+                if (progressBar != null) {
+                    progress = progress + lStep;
+                    final float finalProgress = progress;
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setProgress(Math.round(finalProgress));
+                        }
+                    });
+                }
+            }
+            if (progressBar != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }
+        }
+        return Data.Contacts;
+    }
+
 }
